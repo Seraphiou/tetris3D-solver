@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Three.js Tetris</title>
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	</head>
+    <body>
+        <div id="menu">
+            <h1>Three.js Tetris</h1>
+            <p>
+              Movement: arrows <br>
+              Rotation: AQ/ZS/ED <br>
+
+            </p>
+            <button id="play_button">Play</button>
+        </div>
+        <div id="displayer-container" >
+            <div id="points" class="displayer">
+                0
+            </div>
+            <div id="holes" class="displayer">
+                trous 0
+            </div>
+            <div id="xtrans" class="displayer">
+                xt
+            </div>
+            <div id="ytrans" class="displayer">
+                yt
+            </div>
+            <div id="ztrans" class="displayer">
+                zt
+            </div>
+        </div>
+        <script type="text/javascript" src="js/Three.js"></script>
+        <script type="text/javascript" src="js/Stats.js"></script>
+        <script type="text/javascript" src="js/tetris.js"></script>
+        <script type="text/javascript" src="js/tetris.board.js"></script>
+        <script type="text/javascript" src="js/tetris.block.js"></script>
+
+
+    </body>
+</html>
