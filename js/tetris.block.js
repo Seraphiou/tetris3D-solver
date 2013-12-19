@@ -154,7 +154,7 @@ function rotateAroundWorldAxis(object, axis, radians) {
     object.rotation.setEulerFromRotationMatrix(object.matrix);
 }
 
-Tetris.Block.rotate = function (x, y, z) {
+/*Tetris.Block.rotate = function (x, y, z) {
     Tetris.Block.mesh.rotation.x += x * Math.PI / 180;
     Tetris.Block.mesh.rotation.y += y * Math.PI / 180;
     Tetris.Block.mesh.rotation.z += z * Math.PI / 180;
@@ -178,6 +178,25 @@ Tetris.Block.rotate = function (x, y, z) {
 
     if (Tetris.Board.testCollision(false) === Tetris.Board.COLLISION.WALL) {
         Tetris.Block.rotate(-x, -y, -z);
+    }
+};*/
+Tetris.Block.rotate = function (x, y, z) {
+    Tetris.Block.mesh.rotation.x += x * Math.PI / 180;
+    Tetris.Block.mesh.rotation.y += y * Math.PI / 180;
+    Tetris.Block.mesh.rotation.z += z * Math.PI / 180;
+
+    var rotationMatrix = new THREE.Matrix4();
+    rotationMatrix.setRotationFromEuler(Tetris.Block.mesh.rotation);
+
+    for (var i = 0; i < Tetris.Block.shape.length; i++) {
+        Tetris.Block.shape[i] = rotationMatrix.multiplyVector3(
+            Tetris.Utils.cloneVector(Tetris.Block.shapes[this.blockType][i])
+        );
+        Tetris.Utils.roundVector(Tetris.Block.shape[i]);
+    }
+
+    if (Tetris.Board.testCollision(false) === Tetris.Board.COLLISION.WALL) {
+        Tetris.Block.rotate(-x, -y, -z); // laziness FTW
     }
 };
 
