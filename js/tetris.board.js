@@ -112,19 +112,31 @@ Tetris.Board.xlinTransition = function (boardFields) {
     }
     Tetris.xtDOM.innerHTML = "xt : "+amountxlTransition;
 };
+
+Array.prototype.insert = function (index, item) {
+        this.splice(index, 0, item);
+};
+zeros = function(alength) {
+    return Array.apply(null, new Array(alength)).map(Number.prototype.valueOf,0);
+}
 Tetris.Board.wellcell = function (boardFields) {
     var amountWellCell=0;
     boardFields = boardFields || Tetris.Board.fields;
+    //fields with the edge
+    boardFieldsWithEdges = boardFields;
+
+    boardFieldsWithEdges.insert([[zeros(20)],[zeros(20)],[zeros(20)],[zeros(20)],[zeros(20)],[zeros(20)]]);
     for(var x=1; x<boardFields.length-1;x++){
         for (var y = 1; y<boardFields[0].length - 1; y++) {
             for (var z = 0; z<boardFields[0][0].length; z++) {
                 var n=0;
                 while(boardFields[x][y][z+n]===0){
-                    if(boardFields[x+1][y][z]){
-                        if(boardFields[x][y+1][z]){
-                            if(boardFields[x][y-1][z]){
-                                if(boardFields[x-1][y][z]){
+                    if(boardFields[x+1][y][z+n]){
+                        if(boardFields[x][y+1][z+n]){
+                            if(boardFields[x][y-1][z+n]){
+                                if(boardFields[x-1][y][z+n]){
                                     amountWellCell++;
+                                    n++;
                                 }
                             }
                         }

@@ -128,6 +128,7 @@ Tetris.Block.generate = function () {
     Tetris.Block.mesh.position.x = (Tetris.Block.position.x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize / 2;
     Tetris.Block.mesh.position.y = (Tetris.Block.position.y - Tetris.boundingBoxConfig.splitY / 2) * Tetris.blockSize / 2;
     Tetris.Block.mesh.position.z = (Tetris.Block.position.z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize + Tetris.blockSize / 2;
+    Tetris.Block.mesh.rotation = {x:0, y:0, z:0};
 
     Tetris.Block.mesh.rotationMatrix=new THREE.Matrix4();
     Tetris.Block.mesh.rotationMatrix.setRotationFromEuler({x:0,y:0,z:0});
@@ -136,8 +137,27 @@ Tetris.Block.generate = function () {
     Tetris.scene.add(Tetris.Block.mesh);
 };
 
+function rotateAroundWorldAxis(object, axis, radians) {
+    rotWorldMatrix = new THREE.Matrix4();
+    rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
+
+    // old code for Three.JS pre r54:
+    //  rotWorldMatrix.multiply(object.matrix);
+    // new code for Three.JS r55+:
+    rotWorldMatrix.multiply(object.matrix);                // pre-multiply
+
+    object.matrix = rotWorldMatrix;
+
+    // old code for Three.js pre r49:
+    // object.rotation.getRotationFromMatrix(object.matrix, object.scale);
+    // new code for Three.js r50+:
+    object.rotation.setEulerFromRotationMatrix(object.matrix);
+}
 
 Tetris.Block.rotate = function (x, y, z) {
+    Tetris.Block.mesh.rotation.x += x * Math.PI / 180;
+    Tetris.Block.mesh.rotation.y += y * Math.PI / 180;
+    Tetris.Block.mesh.rotation.z += z * Math.PI / 180;
     var rotation={x:(x*Math.PI)/180,y:(y*Math.PI)/180,z:(z*Math.PI)/180};
     // we create the rotation matrix
     var rotationMatrixtmp = new THREE.Matrix4();
