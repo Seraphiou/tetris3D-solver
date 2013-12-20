@@ -92,6 +92,7 @@ Tetris.start = function () {
 
     Tetris.Block.center();
     Tetris.Block.generate();
+    Tetris.animate();
 };
 
 Tetris.gameStepTime = 1000;
@@ -110,7 +111,6 @@ Tetris.animate = function () {
 
     while (Tetris.cumulatedFrameTime > Tetris.gameStepTime) {
         Tetris.cumulatedFrameTime -= Tetris.gameStepTime;
-        Tetris.Block.move(0,0,-1);
     }
 
     Tetris.renderer.render(Tetris.scene, Tetris.camera);
