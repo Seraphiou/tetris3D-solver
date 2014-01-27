@@ -12,13 +12,19 @@ if (!window.requestAnimationFrame) {
 
 window.Tetris = window.Tetris || {};
 
+
+document.getElementById("reset").addEventListener('click', function (event) {
+    Tetris.camera.position.set(0, 0 , Tetris.boundingBoxConfig.depth/2);
+    Tetris.camera.rotation.set(0, 0, 0);
+});
+
 Tetris.init = function () {
     // set the scene size
     var WIDTH = window.innerWidth,
         HEIGHT = window.innerHeight;
 
     // set some camera attributes
-    var VIEW_ANGLE = 45,
+    var VIEW_ANGLE = 90,
         ASPECT = WIDTH / HEIGHT,
         NEAR = 0.1,
         FAR = 10000;
@@ -33,7 +39,8 @@ Tetris.init = function () {
     Tetris.scene = new THREE.Scene();
 
     // the camera starts at 0,0,0 so pull it back
-
+    controls = new THREE.OrbitControls( Tetris.camera );
+    controls.addEventListener( 'change', Tetris.renderer.render(Tetris.scene,Tetris.camera) );
 
     // start the renderer
     Tetris.renderer.setSize(WIDTH, HEIGHT);
@@ -59,10 +66,17 @@ Tetris.init = function () {
 
     var boundingBox = new THREE.Mesh(
         new THREE.CubeGeometry(boundingBoxConfig.width, boundingBoxConfig.height, boundingBoxConfig.depth, boundingBoxConfig.splitX, boundingBoxConfig.splitY, boundingBoxConfig.splitZ),
-        new THREE.MeshBasicMaterial({ color:0xb2b2f0, wireframe:true })
+        new THREE.MeshBasicMaterial({vertexColors: THREE.FaceColors })
     );
+    boundingBox.material.side=THREE.DoubleSide;
+    //generate different colors
+    var geom=boundingBox.geometry;
+    for (var i = 0; i < geom.faces.length; i++) {
+        var face = geom.faces[i];
+        face.color.set( Math.random() * 0x0000ff );
+    }
     Tetris.scene.add(boundingBox);
-
+    Tetris.renderer.setClearColor( 0xffffff, 1);
     Tetris.renderer.render(Tetris.scene, Tetris.camera);
 
     Tetris.stats = new Stats();
@@ -74,8 +88,10 @@ Tetris.init = function () {
     document.getElementById("play_button").addEventListener('click', function (event) {
         event.preventDefault();
         Tetris.start();
+        Tetris.setFacesPositions();
     });
 };
+
 
 Tetris.start = function () {
     document.getElementById("menu").style.display = "none";
@@ -93,7 +109,39 @@ Tetris.start = function () {
     Tetris.Block.center();
     Tetris.Block.generate();
     Tetris.animate();
+    
 };
+//initializes the position of the faces
+Tetris.setFacesPositions=function(){
+    var faces = Tetris.scene.children[1].geometry.faces;
+    for (var i = faces.length - 1; i >= 0; i--) {
+        var face=faces[i];
+
+        var x=face.centroid.x;
+        var y=face.centroid.y;
+        var z=face.centroid.z;
+        if((x===-180)||(x===180)){x=-1;}
+        else{x=Math.floor((x+180)/60);}
+
+        if((y===-180)||(y===180)){y=-1;}
+        else{y=Math.floor((y+180)/60);}
+        
+        if((z===-600)||(z===600)){z=-1;}
+        else{z=Math.floor((z+600)/60);}
+        face.facePosition=[x,y,z];
+    };
+}
+Tetris.getFacesProjectionOf=function(x,y,z) {
+    return Tetris.scene.children[1].geometry.faces.filter(function(obj){
+        return (obj.facePosition[0]===x)&&(obj.facePosition[1]===y)||(obj.facePosition[1]===y)&&(obj.facePosition[2]===z)||(obj.facePosition[0]===x)&&(obj.facePosition[2]===z);
+    });
+}
+//change color of a face of the bound
+ Tetris.changeInWhite=function(face, color){
+    var color=color||0xffffff;
+    face.color.set(color);
+    Tetris.scene.children[1].geometry.colorsNeedUpdate=true;
+}
 
 Tetris.gameStepTime = 1000;
 
@@ -174,6 +222,9 @@ window.addEventListener('keydown', function (event) {
         case 32: // space
             Tetris.Block.move(0, 0, -1);
             break;
+        case 85: // space
+            Tetris.Block.move(0, 0, 1);
+            break;
 
         case 65: // up (A)
             Tetris.Block.rotate(90, 0, 0);
@@ -197,4 +248,5 @@ window.addEventListener('keydown', function (event) {
             break;
     }
 }, false);
+
 

@@ -4,7 +4,7 @@ Tetris.Utils = {};
 
 // cloneVector clone a vector
 Tetris.Utils.cloneVector = function (v) {
-    return {x:v.x, y:v.y, z:v.z};
+    return {x:v.x, y:v.y,  z:v.z};
 };
 // roundVector round the coodinates of the vector
 Tetris.Utils.roundVector = function(v) {
@@ -113,8 +113,7 @@ Tetris.Block.generate = function () {
 
     //we create a multimaterial object to see the lines
     Tetris.Block.mesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [
-        new THREE.MeshBasicMaterial({color:0x00ffff, shading:THREE.FlatShading, wireframe:true, transparent:true}),
-        new THREE.MeshBasicMaterial({color:0x000000})
+        new THREE.MeshBasicMaterial({color:0x0000ff, wireframeLinewidth: 20,vertexColors: THREE.FaceColors , shading:THREE.FlatShading, wireframe:true})
     ]);
 
     // initial position
@@ -128,16 +127,14 @@ Tetris.Block.generate = function () {
     Tetris.Block.mesh.position.x = (Tetris.Block.position.x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize / 2;
     Tetris.Block.mesh.position.y = (Tetris.Block.position.y - Tetris.boundingBoxConfig.splitY / 2) * Tetris.blockSize / 2;
     Tetris.Block.mesh.position.z = (Tetris.Block.position.z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize + Tetris.blockSize / 2;
-    Tetris.Block.mesh.rotation = {x:0, y:0, z:0};
 
     Tetris.Block.mesh.rotationMatrix=new THREE.Matrix4();
-    Tetris.Block.mesh.rotationMatrix.setRotationFromEuler({x:0,y:0,z:0});
     Tetris.Block.mesh.overdraw = true;
 
     Tetris.scene.add(Tetris.Block.mesh);
 };
 
-function rotateAroundWorldAxis(object, axis, radians) {
+/*function rotateAroundWorldAxis(object, axis, radians) {
     rotWorldMatrix = new THREE.Matrix4();
     rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
 
@@ -152,7 +149,7 @@ function rotateAroundWorldAxis(object, axis, radians) {
     // object.rotation.getRotationFromMatrix(object.matrix, object.scale);
     // new code for Three.js r50+:
     object.rotation.setEulerFromRotationMatrix(object.matrix);
-}
+}*/
 
 /*Tetris.Block.rotate = function (x, y, z) {
     Tetris.Block.mesh.rotation.x += x * Math.PI / 180;
@@ -181,16 +178,14 @@ function rotateAroundWorldAxis(object, axis, radians) {
     }
 };*/
 Tetris.Block.rotate = function (x, y, z) {
-    Tetris.Block.mesh.rotation.x += x * Math.PI / 180;
-    Tetris.Block.mesh.rotation.y += y * Math.PI / 180;
-    Tetris.Block.mesh.rotation.z += z * Math.PI / 180;
 
+    var a = new THREE.Euler( Tetris.Block.mesh.rotation.x, Tetris.Block.mesh.rotation.y, Tetris.Block.mesh.rotation.z);
     var rotationMatrix = new THREE.Matrix4();
-    rotationMatrix.setRotationFromEuler(Tetris.Block.mesh.rotation);
+    rotationMatrix.makeRotationFromEuler(a);
 
     for (var i = 0; i < Tetris.Block.shape.length; i++) {
-        Tetris.Block.shape[i] = rotationMatrix.multiplyVector3(
-            Tetris.Utils.cloneVector(Tetris.Block.shapes[this.blockType][i])
+        Tetris.Block.shape[i] = (Tetris.Utils.cloneVector(Tetris.Block.shapes[this.blockType][i])).applyMatrix4(rotationMatrix
+            
         );
         Tetris.Utils.roundVector(Tetris.Block.shape[i]);
     }
@@ -219,7 +214,22 @@ Tetris.Block.move = function (x, y, z) {
         Tetris.Block.hitBottom();
         Tetris.Board.checkCompleted();
     }
+    //shadow();
 };
+
+Tetris.shadow= function(){
+    var positions=[];
+    var faces=[];
+    positions=Tetris.Block.getPositions();
+    for (var i = positions.length - 1; i >= 0; i--) {
+        alert("lol");
+        faces=Tetris.getFacesProjectionOf(positions[i][0],positions[i][1],positions[i][2]);
+
+        for (var j = faces.length - 1; j >= 0; j--) {
+            Tetris.changeInWhite(faces[j]);
+        };
+    };
+}
 
 /**
  * call when hits the floor and should be transformed to static blocks
@@ -232,9 +242,17 @@ Tetris.Block.petrify = function () {
     }
 };
 
+Tetris.Block.getPositions= function(){
+    var shape = Tetris.Block.shape;
+    var tab=[];
+    for (var i = 0; i < shape.length; i++) {
+        tab[i]=[Tetris.Block.position.x + shape[i].x, Tetris.Block.position.y + shape[i].y, Tetris.Block.position.z + shape[i].z]
+    }
+    return tab;
+}
 Tetris.Block.hitBottom = function () {
     Tetris.Block.petrify();
-    Tetris.scene.removeObject(Tetris.Block.mesh);
+    Tetris.scene.remove(Tetris.Block.mesh);
     Tetris.Block.generate();
     Tetris.Board.rate();
 }
