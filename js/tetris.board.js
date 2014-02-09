@@ -202,7 +202,7 @@ Tetris.Board.checkCompleted = function() {
                                                 Tetris.addStaticBlock(x,y,z);
                                         }
                                         if(fields[x][y][z] == Tetris.Board.FIELD.EMPTY && Tetris.staticBlocks[x][y][z]) {
-                                                Tetris.scene.removeObject(Tetris.staticBlocks[x][y][z]);
+                                                Tetris.scene.remove(Tetris.staticBlocks[x][y][z]);
                                                 Tetris.staticBlocks[x][y][z] = undefined;
                                         }
                                 }

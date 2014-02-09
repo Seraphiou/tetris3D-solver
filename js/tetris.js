@@ -24,7 +24,7 @@ Tetris.init = function () {
         HEIGHT = window.innerHeight;
 
     // set some camera attributes
-    var VIEW_ANGLE = 90,
+    var VIEW_ANGLE = 45,
         ASPECT = WIDTH / HEIGHT,
         NEAR = 0.1,
         FAR = 10000;
@@ -120,14 +120,14 @@ Tetris.setFacesPositions=function(){
         var x=face.centroid.x;
         var y=face.centroid.y;
         var z=face.centroid.z;
-        if((x===-180)||(x===180)){x=-1;}
-        else{x=Math.floor((x+180)/60);}
+        if((x===-(Tetris.boundingBoxConfig.width/2))||(x===(Tetris.boundingBoxConfig.width/2))){x=-1;}
+        else{x=Math.floor((x+(Tetris.boundingBoxConfig.width/2))/(Tetris.boundingBoxConfig.width/Tetris.boundingBoxConfig.splitX));}
 
-        if((y===-180)||(y===180)){y=-1;}
-        else{y=Math.floor((y+180)/60);}
+        if((y===-(Tetris.boundingBoxConfig.height/2))||(y===(Tetris.boundingBoxConfig.height/2))){y=-1;}
+        else{y=Math.floor((y+(Tetris.boundingBoxConfig.height/2))/(Tetris.boundingBoxConfig.height/Tetris.boundingBoxConfig.splitY));}
         
-        if((z===-600)||(z===600)){z=-1;}
-        else{z=Math.floor((z+600)/60);}
+        if((z===-(Tetris.boundingBoxConfig.depth/2))||(z===(Tetris.boundingBoxConfig.depth/2))){z=-1;}
+        else{z=Math.floor((z+(Tetris.boundingBoxConfig.depth/2))/(Tetris.boundingBoxConfig.depth/Tetris.boundingBoxConfig.splitZ));}
         face.facePosition=[x,y,z];
     };
 }

@@ -2,10 +2,12 @@ window.Tetris = window.Tetris || {};
 
 Tetris.Utils = {};
 
+Tetris.beforeWhiteFaces=[];
 // cloneVector clone a vector
 Tetris.Utils.cloneVector = function (v) {
     return {x:v.x, y:v.y,  z:v.z};
 };
+
 // roundVector round the coodinates of the vector
 Tetris.Utils.roundVector = function(v) {
     v.x = Math.round(v.x);
@@ -113,7 +115,8 @@ Tetris.Block.generate = function () {
 
     //we create a multimaterial object to see the lines
     Tetris.Block.mesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [
-        new THREE.MeshBasicMaterial({color:0x0000ff, wireframeLinewidth: 20,vertexColors: THREE.FaceColors , shading:THREE.FlatShading, wireframe:true})
+        new THREE.MeshBasicMaterial({color:0xaaaaaa,vertexColors: THREE.FaceColors , shading:THREE.FlatShading, wireframe:true}),
+        new THREE.MeshBasicMaterial({color:0xff0000,vertexColors: THREE.FaceColors , shading:THREE.FlatShading, transparent: true, opacity: 0.75 })
     ]);
 
     // initial position
@@ -126,11 +129,10 @@ Tetris.Block.generate = function () {
 
     Tetris.Block.mesh.position.x = (Tetris.Block.position.x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize / 2;
     Tetris.Block.mesh.position.y = (Tetris.Block.position.y - Tetris.boundingBoxConfig.splitY / 2) * Tetris.blockSize / 2;
-    Tetris.Block.mesh.position.z = (Tetris.Block.position.z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize + Tetris.blockSize / 2;
+    Tetris.Block.mesh.position.z = (Tetris.Block.position.z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize - Tetris.blockSize / 2;
 
     Tetris.Block.mesh.rotationMatrix=new THREE.Matrix4();
     Tetris.Block.mesh.overdraw = true;
-
     Tetris.scene.add(Tetris.Block.mesh);
 };
 
@@ -178,21 +180,42 @@ Tetris.Block.generate = function () {
     }
 };*/
 Tetris.Block.rotate = function (x, y, z) {
-
-    var a = new THREE.Euler( Tetris.Block.mesh.rotation.x, Tetris.Block.mesh.rotation.y, Tetris.Block.mesh.rotation.z);
-    var rotationMatrix = new THREE.Matrix4();
-    rotationMatrix.makeRotationFromEuler(a);
-
+    var axis = new THREE.Vector3(x,y,z);
+    rotateAroundWorldAxis(Tetris.Block.mesh, axis, Math.PI/2);
+    var matrix=new THREE.Matrix4().makeRotationAxis( axis, Math.PI/2 );
     for (var i = 0; i < Tetris.Block.shape.length; i++) {
-        Tetris.Block.shape[i] = (Tetris.Utils.cloneVector(Tetris.Block.shapes[this.blockType][i])).applyMatrix4(rotationMatrix
-            
-        );
+        var v=Tetris.Utils.cloneVector(Tetris.Block.shape[i])
+        var lastV=new THREE.Vector3(v.x,v.y,v.z);
+        var newV=lastV.applyMatrix4(matrix);
+        Tetris.Block.shape[i]={ x:newV.x , y:newV.y , z:newV.z }
         Tetris.Utils.roundVector(Tetris.Block.shape[i]);
     }
 
     if (Tetris.Board.testCollision(false) === Tetris.Board.COLLISION.WALL) {
         Tetris.Block.rotate(-x, -y, -z); // laziness FTW
     }
+
+    Tetris.shadow();
+};
+Tetris.rotateShape = function (shape, x, y, z, ntimes) {
+    var axis = new THREE.Vector3(x,y,z);
+    var matrix=new THREE.Matrix4().makeRotationAxis( axis, ntimes*Math.PI/2 );
+    for (var i = 0; i < shape.length; i++) {
+        var v=Tetris.Utils.cloneVector(shape[i])
+        var lastV=new THREE.Vector3(v.x,v.y,v.z);
+        var newV=lastV.applyMatrix4(matrix);
+        shapeF[i]={ x:newV.x , y:newV.y , z:newV.z }
+        Tetris.Utils.roundVector(shapeF[i]);
+    }
+    return shapeF;
+};
+
+function rotateAroundWorldAxis(object, axis, radians) {
+    rotWorldMatrix = new THREE.Matrix4();
+    rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
+    rotWorldMatrix.multiply(object.matrix);
+    object.matrix = rotWorldMatrix;
+    object.rotation.setFromRotationMatrix(object.matrix);
 };
 
 Tetris.Block.move = function (x, y, z) {
@@ -214,19 +237,25 @@ Tetris.Block.move = function (x, y, z) {
         Tetris.Block.hitBottom();
         Tetris.Board.checkCompleted();
     }
-    //shadow();
+    Tetris.shadow();
 };
-
 Tetris.shadow= function(){
     var positions=[];
+    var beforeWhiteFaces=[];
+    beforeWhiteFaces=Tetris.beforeWhiteFaces;
+    Tetris.beforeWhiteFaces=[];
     var faces=[];
+
     positions=Tetris.Block.getPositions();
+    for (var i = beforeWhiteFaces.length - 1; i >= 0; i--) {
+        beforeWhiteFaces[i].color.set( Math.random() * 0x0000ff );
+    };
     for (var i = positions.length - 1; i >= 0; i--) {
-        alert("lol");
         faces=Tetris.getFacesProjectionOf(positions[i][0],positions[i][1],positions[i][2]);
 
         for (var j = faces.length - 1; j >= 0; j--) {
             Tetris.changeInWhite(faces[j]);
+            Tetris.beforeWhiteFaces.push(faces[j]);
         };
     };
 }
@@ -242,11 +271,20 @@ Tetris.Block.petrify = function () {
     }
 };
 
+/**
+* get an array of all kinds of rotation that are possible for the shape
+*/
+Tetris.Block.getAllRotations = function (){
+    var rotations=[];
+    var initShape=this.shape;
+    rotations.push()
+}
+
 Tetris.Block.getPositions= function(){
     var shape = Tetris.Block.shape;
     var tab=[];
     for (var i = 0; i < shape.length; i++) {
-        tab[i]=[Tetris.Block.position.x + shape[i].x, Tetris.Block.position.y + shape[i].y, Tetris.Block.position.z + shape[i].z]
+        tab[i]=[Tetris.Block.position.x + shape[i].x, Tetris.Block.position.y + shape[i].y, Tetris.Block.position.z-1 + shape[i].z]
     }
     return tab;
 }
@@ -255,4 +293,6 @@ Tetris.Block.hitBottom = function () {
     Tetris.scene.remove(Tetris.Block.mesh);
     Tetris.Block.generate();
     Tetris.Board.rate();
+
+    Tetris.shadow();
 }
