@@ -147,26 +147,28 @@ Tetris.Block.generate = function () {
     }
 
     //we create a multimaterial object to see the lines
-    Tetris.Block.mesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [
+   /* Tetris.Block.mesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [
         new THREE.MeshBasicMaterial({color:0xaaaaaa,vertexColors: THREE.FaceColors , shading:THREE.FlatShading, wireframe:true}),
         new THREE.MeshBasicMaterial({color:0xff0000,vertexColors: THREE.FaceColors , shading:THREE.FlatShading, transparent: true, opacity: 0.75 })
-    ]);
+    ]);*/
 
     // initial position
-    Tetris.Block.position = {x:Math.floor(Tetris.boundingBoxConfig.splitX / 2) - 1, y:Math.floor(Tetris.boundingBoxConfig.splitY / 2) - 1, z:15};
+    //Tetris.Block.position = {x:Math.floor(Tetris.boundingBoxConfig.splitX / 2) - 1, y:Math.floor(Tetris.boundingBoxConfig.splitY / 2) - 1, z:15};
     //if there is a collision game is over
+    Tetris.Block.getBestPositonBlocks();
+    Tetris.Block.shape=copyShape(Tetris.Block.bestBlock.shape);
+    Tetris.Block.position=Tetris.Block.bestBlock.position;
     if (Tetris.Board.testCollision(true) === Tetris.Board.COLLISION.GROUND) {
         Tetris.gameOver = true;
-        Tetris.pointsDOM.innerHTML = "GAME OVER";
     }
 
-    Tetris.Block.mesh.position.x = (Tetris.Block.position.x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize / 2;
+    /*Tetris.Block.mesh.position.x = (Tetris.Block.position.x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize / 2;
     Tetris.Block.mesh.position.y = (Tetris.Block.position.y - Tetris.boundingBoxConfig.splitY / 2) * Tetris.blockSize / 2;
     Tetris.Block.mesh.position.z = (Tetris.Block.position.z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize - Tetris.blockSize / 2;
 
     Tetris.Block.mesh.rotationMatrix=new THREE.Matrix4();
     Tetris.Block.mesh.overdraw = true;
-    Tetris.scene.add(Tetris.Block.mesh);
+    Tetris.scene.add(Tetris.Block.mesh);*/
 };
 
 /*function rotateAroundWorldAxis(object, axis, radians) {
@@ -253,13 +255,13 @@ function rotateAroundWorldAxis(object, axis, radians) {
 };
 
 Tetris.Block.move = function (x, y, z) {
-    Tetris.Block.mesh.position.x += x * Tetris.blockSize;
+    //Tetris.Block.mesh.position.x += x * Tetris.blockSize;
     Tetris.Block.position.x += x;
 
-    Tetris.Block.mesh.position.y += y * Tetris.blockSize;
+    //Tetris.Block.mesh.position.y += y * Tetris.blockSize;
     Tetris.Block.position.y += y;
 
-    Tetris.Block.mesh.position.z += z * Tetris.blockSize;
+    //Tetris.Block.mesh.position.z += z * Tetris.blockSize;
     Tetris.Block.position.z += z;
 
     var collision = Tetris.Board.testCollision((z != 0));
@@ -271,7 +273,7 @@ Tetris.Block.move = function (x, y, z) {
         Tetris.Block.hitBottom();
         Tetris.Board.checkCompleted();
     }
-    Tetris.shadow();
+    //Tetris.shadow();
 };
 
 Tetris.copyShapeArray=function(shapeArray){
@@ -282,6 +284,13 @@ Tetris.copyShapeArray=function(shapeArray){
     };
     return shapeArrayNew;
 }
+Tetris.Block.bestBlock={};
+Tetris.Block.bestBlock.shape=[];
+Tetris.Block.bestBlock.position={};
+Tetris.Block.bestBlock.position.x=0;
+Tetris.Block.bestBlock.position.y=0;
+Tetris.Block.bestBlock.position.z=0;
+
 Tetris.Block.getBestPositonBlocks=function (){
     var array=[];
     array=Tetris.copyShapeArray(this.getAllRotations());
@@ -308,9 +317,13 @@ Tetris.Block.getBestPositonBlocks=function (){
         }
         
     }
-    for (var i = 0; i < shape.length; i++) {
+    Tetris.Block.bestBlock.shape=copyShape(shape);
+    Tetris.Block.bestBlock.position.x=x;
+    Tetris.Block.bestBlock.position.y=y;
+    Tetris.Block.bestBlock.position.z=z+1;    
+    /*for (var i = 0; i < shape.length; i++) {
         Tetris.addBestBlocks(shape[i].x+x,shape[i].y+y,shape[i].z+z);
-    }
+    }*/
     return "x = "+x+" y = "+y+" z = "+z;
 };
 Tetris.Block.rateCase = function (shape,x,y,z){
@@ -424,11 +437,12 @@ Tetris.Block.getPositions= function(){
 };
 Tetris.Block.hitBottom = function () {
     Tetris.Block.petrify();
-    Tetris.scene.remove(Tetris.Block.mesh);
+    /*Tetris.scene.remove(Tetris.Block.mesh);*/
     Tetris.Block.generate();
-    Tetris.clearBest();
-    Tetris.Block.getBestPositonBlocks();
-    Tetris.Board.rate();
+    //Tetris.clearBest();
+    //Tetris.Board.rate();
 
-    Tetris.shadow();
+
+
+    //Tetris.shadow();
 };

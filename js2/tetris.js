@@ -106,16 +106,16 @@ Tetris.start = function () {
     Tetris.ytDOM.style.display = "block";
     Tetris.ztDOM = document.getElementById("ztrans");
     Tetris.ztDOM.style.display = "block";
-    Tetris.endlinew=document.getElementById("endlinew").value;
     Tetris.holesW=document.getElementById("holesw").value;
     Tetris.erosionW=document.getElementById("erosionw").value;
     Tetris.wellcellW=document.getElementById("wellcellw").value;
     Tetris.linW=document.getElementById("linw").value;
     Tetris.colW=document.getElementById("colw").value;
     Tetris.heightW=document.getElementById("heightw").value;
+    Tetris.endlinew=document.getElementById("endlinew").value;
     Tetris.Block.center();
     Tetris.Block.generate();
-    Tetris.Block.getBestPositonBlocks();
+    setTimeout(Tetris.Block.move(0,0,-1),500);
     Tetris.animate();
     
     
