@@ -38,7 +38,7 @@ Tetris.init = function () {
         FAR);
     Tetris.scene = new THREE.Scene();
 
-    // the camera starts at 0,0,0 so pull it back
+        // the camera starts at 0,0,0 so pull it back
     controls = new THREE.OrbitControls( Tetris.camera );
     controls.addEventListener( 'change', Tetris.renderer.render(Tetris.scene,Tetris.camera) );
 
@@ -94,6 +94,7 @@ Tetris.init = function () {
 
 
 Tetris.start = function () {
+
     document.getElementById("menu").style.display = "none";
     Tetris.pointsDOM = document.getElementById("points");
     Tetris.pointsDOM.style.display = "block";
@@ -105,10 +106,17 @@ Tetris.start = function () {
     Tetris.ytDOM.style.display = "block";
     Tetris.ztDOM = document.getElementById("ztrans");
     Tetris.ztDOM.style.display = "block";
-
+    Tetris.holesW=document.getElementById("holesw").value;
+    Tetris.erosionW=document.getElementById("erosionw").value;
+    Tetris.wellcellW=document.getElementById("wellcellw").value;
+    Tetris.linW=document.getElementById("linw").value;
+    Tetris.colW=document.getElementById("colw").value;
+    Tetris.heightW=document.getElementById("heightw").value;
     Tetris.Block.center();
     Tetris.Block.generate();
+    Tetris.Block.getBestPositonBlocks();
     Tetris.animate();
+    
     
 };
 //initializes the position of the faces
@@ -192,6 +200,38 @@ Tetris.addStaticBlock = function (x, y, z) {
     Tetris.scene.add(mesh);
     Tetris.staticBlocks[x][y][z] = mesh;
 };
+Tetris.bestBlocks=[];
+Tetris.addBestBlocks = function (x, y, z) {
+    if (Tetris.bestBlocks[x] === undefined) Tetris.bestBlocks[x] = [];
+    if (Tetris.bestBlocks[x][y] === undefined) Tetris.bestBlocks[x][y] = [];
+    var mesh = THREE.SceneUtils.createMultiMaterialObject(new THREE.CubeGeometry(Tetris.blockSize, Tetris.blockSize, Tetris.blockSize), [
+        new THREE.MeshBasicMaterial({color:0x000000, shading:THREE.FlatShading, wireframe:true, transparent:true}),
+        new THREE.MeshBasicMaterial({color:0x00ff00, transparent:true, opacity:0.3})
+    ]);
+
+    mesh.position.x = (x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize + Tetris.blockSize / 2;
+    mesh.position.y = (y - Tetris.boundingBoxConfig.splitY / 2) * Tetris.blockSize + Tetris.blockSize / 2;
+    mesh.position.z = (z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize + Tetris.blockSize / 2;
+
+    Tetris.scene.add(mesh);
+    Tetris.bestBlocks[x][y][z]=mesh;
+};
+Tetris.clearBest=function(){
+    if(Tetris.bestBlocks!==undefined){
+        for (var i = 0; i < Tetris.bestBlocks.length; i++) {
+            if(Tetris.bestBlocks[i]!==undefined){
+                for (var j = 0; j < Tetris.bestBlocks[i].length; j++) {
+                    if(Tetris.bestBlocks[i][j]!==undefined){
+                        for (var k = 0; k < Tetris.bestBlocks[i][j].length; k++) {
+                            Tetris.scene.remove(Tetris.bestBlocks[i][j][k]);
+                            Tetris.bestBlocks[i][j][k] = undefined;
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
 
 Tetris.currentPoints = 0;
 Tetris.addPoints = function (n) {
@@ -248,5 +288,3 @@ window.addEventListener('keydown', function (event) {
             break;
     }
 }, false);
-
-

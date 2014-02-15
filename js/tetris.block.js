@@ -14,6 +14,10 @@ Tetris.Utils.roundVector = function(v) {
     v.y = Math.round(v.y);
     v.z = Math.round(v.z);
 };
+Tetris.Utils.equalsVector = function(u,v) {
+    return ((u.x==v.x)&&(u.y==v.y)&&(u.z==v.z));
+};
+
 Tetris.Utils.roundMatrix4 = function(m) {
     m.n11 = Math.round(m.n11);
     m.n12 = Math.round(m.n12);
@@ -71,6 +75,7 @@ Tetris.Block.Uncenteredshapes = [
 Tetris.Block.shapes = [];
 
 Tetris.Block.position = {};
+//center all shapes
 Tetris.Block.center = function () {
     for(j=0; j<Tetris.Block.Uncenteredshapes.length;j++) {
         var shape = Tetris.Block.Uncenteredshapes[j];
@@ -90,8 +95,36 @@ Tetris.Block.center = function () {
         Tetris.Block.shapes[j]=shape;
     }
 };
-
+//center a shape
+Tetris.centerShape = function(shape){
+    var tablex=[];
+    var tabley=[];
+    var tablez=[];
+    for (i = 0; i < shape.length; i++) {
+        tablex[i]=shape[i].x;
+        tabley[i]=shape[i].y;
+        tablez[i]=shape[i].z;
+    }
+    var xmin=Math.min.apply(null,tablex);
+    var ymin=Math.min.apply(null,tabley);
+    var zmin=Math.min.apply(null,tablez);
+    for (i = 0; i < shape.length; i++) {
+        shape[i].x=shape[i].x-xmin;
+        shape[i].y=shape[i].y-ymin;
+        shape[i].z=shape[i].z-zmin;
+    }
+};
+function copyShape(shapei) {
+    var shape=[];
+    for (var i = 0; i <shapei.length; i++ ) {
+        shape[i]=Tetris.Utils.cloneVector(shapei[i]);
+    };
+    return shape;
+};
+//generate a block
 Tetris.Block.generate = function () {
+
+    
     var geometry, tmpGeometry, i;
     //choose a type
     var type = Math.floor(Math.random() * (Tetris.Block.shapes.length));
@@ -200,11 +233,12 @@ Tetris.Block.rotate = function (x, y, z) {
 Tetris.rotateShape = function (shape, x, y, z, ntimes) {
     var axis = new THREE.Vector3(x,y,z);
     var matrix=new THREE.Matrix4().makeRotationAxis( axis, ntimes*Math.PI/2 );
+    var shapeF=[];
     for (var i = 0; i < shape.length; i++) {
-        var v=Tetris.Utils.cloneVector(shape[i])
+        var v=Tetris.Utils.cloneVector(shape[i]);
         var lastV=new THREE.Vector3(v.x,v.y,v.z);
         var newV=lastV.applyMatrix4(matrix);
-        shapeF[i]={ x:newV.x , y:newV.y , z:newV.z }
+        shapeF[i]={ x:newV.x , y:newV.y , z:newV.z };
         Tetris.Utils.roundVector(shapeF[i]);
     }
     return shapeF;
@@ -239,6 +273,56 @@ Tetris.Block.move = function (x, y, z) {
     }
     Tetris.shadow();
 };
+
+Tetris.copyShapeArray=function(shapeArray){
+    var shapeArrayNew=[];
+    for (var i = 0; i < shapeArray.length; i++) {
+        shapeArrayNew[i]=copyShape(shapeArray[i]);
+
+    };
+    return shapeArrayNew;
+}
+Tetris.Block.getBestPositonBlocks=function (){
+    var array=[];
+    array=Tetris.copyShapeArray(this.getAllRotations());
+    var bestRated="nothing";
+    var shape;
+    var x=0,y=0,z=0;
+    var rate;
+    for (var i = 0; i < array.length; i++) {
+        for (var j = 0; j < Tetris.Board.fields.length; j++) {
+            for (var k = 0; k < Tetris.Board.fields[j].length; k++) {
+                for (var l = 0; l < Tetris.Board.fields[j][k].length; l++) {
+                    if(Tetris.Board.isPositionPossible(array[i],j,k,l)){
+                        rate=Tetris.Block.rateCase(array[i],j,k,l);
+                        if(bestRated==="nothing"||rate>bestRated){
+                            x=j;
+                            y=k;
+                            z=l;
+                            shape=copyShape(array[i]);
+                            bestRated=rate;
+                        }
+                    }
+                }
+            }
+        }
+        
+    }
+    for (var i = 0; i < shape.length; i++) {
+        Tetris.addBestBlocks(shape[i].x+x,shape[i].y+y,shape[i].z+z);
+    }
+    return "x = "+x+" y = "+y+" z = "+z;
+};
+Tetris.Block.rateCase = function (shape,x,y,z){
+    
+    var boardFields = copy(Tetris.Board.fields);
+    for (var i = 0; i < shape.length; i++) {
+        boardFields[shape[i].x+x][shape[i].y+y][shape[i].z+z]=Tetris.Board.FIELD.ACTIVE;
+    };
+    return (-Tetris.holesW)*Tetris.Board.holesAmount(boardFields)+Tetris.erosionW*Tetris.Board.erosion(boardFields)-Tetris.wellcellW*Tetris.Board.wellcell(boardFields)-Tetris.linW*Math.max(Tetris.Board.xlinTransition(boardFields),Tetris.Board.ylinTransition(boardFields))-Tetris.colW*Tetris.Board.colTransition(boardFields)-Tetris.heightW*Tetris.Board.arriveHeight(boardFields);
+    
+};
+
 Tetris.shadow= function(){
     var positions=[];
     var beforeWhiteFaces=[];
@@ -258,7 +342,7 @@ Tetris.shadow= function(){
             Tetris.beforeWhiteFaces.push(faces[j]);
         };
     };
-}
+};
 
 /**
  * call when hits the floor and should be transformed to static blocks
@@ -270,15 +354,65 @@ Tetris.Block.petrify = function () {
         Tetris.Board.fields[Tetris.Block.position.x + shape[i].x][Tetris.Block.position.y + shape[i].y][Tetris.Block.position.z + shape[i].z] = Tetris.Board.FIELD.PETRIFIED;
     }
 };
+Tetris.addBoardBlock = function (x,y,z) {
+        Tetris.addStaticBlock(x,y,z);
+        Tetris.Board.fields[x][y][z] = Tetris.Board.FIELD.PETRIFIED;
+};
+Tetris.equalsShape = function(shape1,shape2){
+    var s1=copyShape(shape1);
+    var s2=copyShape(shape2);
+    Tetris.centerShape(s1);
+    Tetris.centerShape(s2);
+
+    for (var i = s1.length - 1; i >= 0; i--) {
+        for (var j= s2.length - 1; j >= 0; j--) {
+            if(Tetris.Utils.equalsVector(s1[i],s2[j])){
+                s1[i]=false;
+                s2[j]=false;
+            }
+        };
+        
+    };
+    var s=false;
+    for (var i = 0; i < s1.length; i++) {
+        s=s||s1[i]||s2[i];
+    };
+    return !s;
+}
+
+Tetris.pushIfNotContains=function(array, shape){
+    var contains=false;
+    for (var i = 0; i < array.length; i++) {
+        if(Tetris.equalsShape(shape,array[i])){
+            contains=true;
+        }
+    };
+    if(!contains){
+        array.push(shape);
+    };
+};
 
 /**
 * get an array of all kinds of rotation that are possible for the shape
 */
-Tetris.Block.getAllRotations = function (){
+Tetris.Block.getAllRotations = function (shapei){
     var rotations=[];
-    var initShape=this.shape;
-    rotations.push()
-}
+    var initshape=shapei||copyShape(this.shape);
+    rotations.push(initshape);
+    for (var i = 4 - 1; i >= 0; i--) {
+        for (var j = 4 - 1; j >= 0; j--) {
+            Tetris.pushIfNotContains(rotations,Tetris.rotateShape(Tetris.rotateShape(initshape,1,0,0,i),0,0,1,j));
+            if(i==1||i==3){
+                Tetris.pushIfNotContains(rotations,Tetris.rotateShape(Tetris.rotateShape(initshape,0,1,0,i),0,0,1,j));
+            }
+        };
+        
+    };
+    for (var i = 0; i < rotations.length; i++) {
+        Tetris.centerShape(rotations[i]);
+    };
+    return rotations;
+};
 
 Tetris.Block.getPositions= function(){
     var shape = Tetris.Block.shape;
@@ -287,12 +421,14 @@ Tetris.Block.getPositions= function(){
         tab[i]=[Tetris.Block.position.x + shape[i].x, Tetris.Block.position.y + shape[i].y, Tetris.Block.position.z-1 + shape[i].z]
     }
     return tab;
-}
+};
 Tetris.Block.hitBottom = function () {
     Tetris.Block.petrify();
     Tetris.scene.remove(Tetris.Block.mesh);
     Tetris.Block.generate();
+    Tetris.clearBest();
+    Tetris.Block.getBestPositonBlocks();
     Tetris.Board.rate();
 
     Tetris.shadow();
-}
+};
