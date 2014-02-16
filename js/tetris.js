@@ -87,8 +87,8 @@ Tetris.init = function () {
 
     document.getElementById("play_button").addEventListener('click', function (event) {
         event.preventDefault();
-        Tetris.start();
         Tetris.setFacesPositions();
+        Tetris.start();
     });
 };
 
@@ -168,7 +168,6 @@ Tetris.animate = function () {
 
     while (Tetris.cumulatedFrameTime > Tetris.gameStepTime) {
         Tetris.cumulatedFrameTime -= Tetris.gameStepTime;
-        Tetris.Block.move(0, 0, -1);
     }
 
     Tetris.renderer.render(Tetris.scene, Tetris.camera);
