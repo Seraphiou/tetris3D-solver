@@ -115,7 +115,6 @@ Tetris.start = function () {
     Tetris.endlinew=document.getElementById("endlinew").value;
     Tetris.Block.center();
     Tetris.Block.generate();
-    setTimeout(Tetris.Block.move(0,0,-1),500);
     Tetris.animate();
     
     
