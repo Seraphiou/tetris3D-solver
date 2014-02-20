@@ -24,7 +24,7 @@ body {margin: 0; padding: 0; overflow: hidden;}
     height: 25px;
 
     background-color: #C44032;
-
+    cursor: pointer;
     border: 3px solid #fff;
     border-radius: 5px;
 
@@ -32,7 +32,11 @@ body {margin: 0; padding: 0; overflow: hidden;}
     font-weight: bold;
     color: #fff;
 }
-
+#menu #play_button:hover {
+    font-weight: bold;
+    color: #fff;
+    border: 5px solid #1ff;
+}
 .displayer {
     float: right;
     width: 120px;
