@@ -75,6 +75,37 @@ Tetris.Block.Uncenteredshapes = [
 Tetris.Block.shapes = [];
 
 Tetris.Block.position = {};
+Tetris.Block.generateBlockShapes = function() {
+
+    Tetris.Block.Uncenteredshapes=[];
+
+    for (var i = 0; i < 10; i++) {
+        var tempShape=[];
+        var a={x:0, y:0, z:0};
+        tempShape.push(Tetris.Utils.cloneVector(a));
+        for (var j = 0; j < 4; j++) {
+            var b=Math.floor((Math.random()*4));
+            switch(b){
+                case 0:
+                    break;
+                case 1:
+                    a.x+=1;
+                    tempShape.push(Tetris.Utils.cloneVector(a));
+                    break;
+                case 2:
+                    a.y+=1;
+                    tempShape.push(Tetris.Utils.cloneVector(a));
+                    break;
+                case 3:
+                    a.z+=1;
+                    tempShape.push(Tetris.Utils.cloneVector(a));
+                    break;
+            }
+            
+        };
+        Tetris.Block.Uncenteredshapes.push(tempShape);
+    };
+}
 //center all shapes
 Tetris.Block.center = function () {
     for(j=0; j<Tetris.Block.Uncenteredshapes.length;j++) {
@@ -171,49 +202,6 @@ Tetris.Block.generate = function () {
     Tetris.scene.add(Tetris.Block.mesh);*/
 };
 
-/*function rotateAroundWorldAxis(object, axis, radians) {
-    rotWorldMatrix = new THREE.Matrix4();
-    rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
-
-    // old code for Three.JS pre r54:
-    //  rotWorldMatrix.multiply(object.matrix);
-    // new code for Three.JS r55+:
-    rotWorldMatrix.multiply(object.matrix);                // pre-multiply
-
-    object.matrix = rotWorldMatrix;
-
-    // old code for Three.js pre r49:
-    // object.rotation.getRotationFromMatrix(object.matrix, object.scale);
-    // new code for Three.js r50+:
-    object.rotation.setEulerFromRotationMatrix(object.matrix);
-}*/
-
-/*Tetris.Block.rotate = function (x, y, z) {
-    Tetris.Block.mesh.rotation.x += x * Math.PI / 180;
-    Tetris.Block.mesh.rotation.y += y * Math.PI / 180;
-    Tetris.Block.mesh.rotation.z += z * Math.PI / 180;
-    var rotation={x:(x*Math.PI)/180,y:(y*Math.PI)/180,z:(z*Math.PI)/180};
-    // we create the rotation matrix
-    var rotationMatrixtmp = new THREE.Matrix4();
-    rotationMatrixtmp.setRotationFromEuler(rotation);
-    Tetris.Utils.roundMatrix4(rotationMatrixtmp);
-    //we store the total rotation matrix for the current state of the Block rotation
-    Tetris.Block.mesh.rotationMatrix=Tetris.Block.mesh.rotationMatrix.multiply(Tetris.Block.mesh.rotationMatrix,rotationMatrixtmp);
-
-    //rotationMatrix is the global rotation matrix
-    var rotationMatrix=Tetris.Block.mesh.rotationMatrix;
-
-    for (var i = 0; i < Tetris.Block.shape.length; i++) {
-        Tetris.Block.shape[i] = Tetris.Block.mesh.rotationMatrix.multiplyVector3(
-            Tetris.Utils.cloneVector(Tetris.Block.shapes[this.blockType][i])
-        );
-        Tetris.Utils.roundVector(Tetris.Block.shape[i]);
-    }
-
-    if (Tetris.Board.testCollision(false) === Tetris.Board.COLLISION.WALL) {
-        Tetris.Block.rotate(-x, -y, -z);
-    }
-};*/
 Tetris.Block.rotate = function (x, y, z) {
     var axis = new THREE.Vector3(x,y,z);
     rotateAroundWorldAxis(Tetris.Block.mesh, axis, Math.PI/2);
@@ -332,7 +320,7 @@ Tetris.Block.rateCase = function (shape,x,y,z){
     for (var i = 0; i < shape.length; i++) {
         boardFields[shape[i].x+x][shape[i].y+y][shape[i].z+z]=Tetris.Board.FIELD.ACTIVE;
     };
-    return (-Tetris.holesW)*Tetris.Board.holesAmount(boardFields)+Tetris.erosionW*Tetris.Board.erosion(boardFields)-Tetris.wellcellW*Tetris.Board.wellcell(boardFields)-Tetris.linW*Math.max(Tetris.Board.xlinTransition(boardFields),Tetris.Board.ylinTransition(boardFields))-Tetris.colW*Tetris.Board.colTransition(boardFields)-Tetris.heightW*Tetris.Board.arriveHeight(boardFields)-Tetris.endlinew*Tetris.Board.numberHolesMostCompleted(boardFields);
+    return (-Tetris.holesW)*Tetris.Board.holesAmount(boardFields)+(-Tetris.holesdW)*Tetris.Board.holesDepth(boardFields)+Tetris.erosionW*Tetris.Board.erosion(boardFields)-Tetris.wellcellW*Tetris.Board.wellcell(boardFields)-Tetris.linW*Math.max(Tetris.Board.xlinTransition(boardFields),Tetris.Board.ylinTransition(boardFields))-Tetris.colW*Tetris.Board.colTransition(boardFields)-Tetris.heightW*Tetris.Board.arriveHeight(boardFields)-Tetris.endlinew*Tetris.Board.numberHolesMostCompleted(boardFields);
     
 };
 

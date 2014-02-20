@@ -45,17 +45,21 @@ Tetris.init = function () {
     // start the renderer
     Tetris.renderer.setSize(WIDTH, HEIGHT);
 
+    Tetris.splitX=6;
+    Tetris.splitY=6;
+    Tetris.splitZ=20;
+    Tetris.blockSizeInit=60;
     // attach the render-supplied DOM element
     document.body.appendChild(Tetris.renderer.domElement);
 
     // configuration object
     var boundingBoxConfig = {
-        width:360,
-        height:360,
-        depth:1200,
-        splitX:6,
-        splitY:6,
-        splitZ:20
+        width:Tetris.blockSizeInit*Tetris.splitX,
+        height:Tetris.blockSizeInit*Tetris.splitY,
+        depth:Tetris.blockSizeInit*Tetris.splitZ,
+        splitX:Tetris.splitX,
+        splitY:Tetris.splitY,
+        splitZ:Tetris.splitZ
     };
     Tetris.camera.position.z = boundingBoxConfig.depth/2;
     Tetris.scene.add(Tetris.camera);
@@ -66,16 +70,21 @@ Tetris.init = function () {
 
     var boundingBox = new THREE.Mesh(
         new THREE.CubeGeometry(boundingBoxConfig.width, boundingBoxConfig.height, boundingBoxConfig.depth, boundingBoxConfig.splitX, boundingBoxConfig.splitY, boundingBoxConfig.splitZ),
-        new THREE.MeshBasicMaterial({vertexColors: THREE.FaceColors })
+        new THREE.MeshBasicMaterial({vertexColors: THREE.FaceColors, transparent: true, opacity:0.05 })
+    );
+    var boundingBoxFrame = new THREE.Mesh(
+        new THREE.CubeGeometry(boundingBoxConfig.width, boundingBoxConfig.height, boundingBoxConfig.depth, boundingBoxConfig.splitX, boundingBoxConfig.splitY, boundingBoxConfig.splitZ),
+        new THREE.MeshBasicMaterial({color:0x999999, wireframe:true })
     );
     boundingBox.material.side=THREE.DoubleSide;
     //generate different colors
     var geom=boundingBox.geometry;
     for (var i = 0; i < geom.faces.length; i++) {
         var face = geom.faces[i];
-        face.color.set( Math.random() * 0x0000ff );
+        face.color.set( 0xffffff );
     }
     Tetris.scene.add(boundingBox);
+    Tetris.scene.add(boundingBoxFrame);
     Tetris.renderer.setClearColor( 0xffffff, 1);
     Tetris.renderer.render(Tetris.scene, Tetris.camera);
 
@@ -87,8 +96,8 @@ Tetris.init = function () {
 
     document.getElementById("play_button").addEventListener('click', function (event) {
         event.preventDefault();
-        Tetris.start();
         Tetris.setFacesPositions();
+        Tetris.start();
     });
 };
 
@@ -106,13 +115,16 @@ Tetris.start = function () {
     Tetris.ytDOM.style.display = "block";
     Tetris.ztDOM = document.getElementById("ztrans");
     Tetris.ztDOM.style.display = "block";
+    Tetris.holesdW=document.getElementById("holesdw").value;
+    Tetris.endlinew=document.getElementById("endlinew").value;
     Tetris.holesW=document.getElementById("holesw").value;
     Tetris.erosionW=document.getElementById("erosionw").value;
     Tetris.wellcellW=document.getElementById("wellcellw").value;
     Tetris.linW=document.getElementById("linw").value;
     Tetris.colW=document.getElementById("colw").value;
     Tetris.heightW=document.getElementById("heightw").value;
-    Tetris.endlinew=document.getElementById("endlinew").value;
+    Tetris.classic=document.getElementById("classic");
+    if(!Tetris.classic.checked){Tetris.Block.generateBlockShapes();}
     Tetris.Block.center();
     Tetris.Block.generate();
     Tetris.animate();

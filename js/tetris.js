@@ -45,17 +45,21 @@ Tetris.init = function () {
     // start the renderer
     Tetris.renderer.setSize(WIDTH, HEIGHT);
 
+    Tetris.splitX=15;
+    Tetris.splitY=6;
+    Tetris.splitZ=20;
+    Tetris.blockSizeInit=60;
     // attach the render-supplied DOM element
     document.body.appendChild(Tetris.renderer.domElement);
 
     // configuration object
     var boundingBoxConfig = {
-        width:600,
-        height:600,
-        depth:1200,
-        splitX:10,
-        splitY:10,
-        splitZ:20
+        width:Tetris.blockSizeInit*Tetris.splitX,
+        height:Tetris.blockSizeInit*Tetris.splitY,
+        depth:Tetris.blockSizeInit*Tetris.splitZ,
+        splitX:Tetris.splitX,
+        splitY:Tetris.splitY,
+        splitZ:Tetris.splitZ
     };
     Tetris.camera.position.z = boundingBoxConfig.depth/2;
     Tetris.scene.add(Tetris.camera);
@@ -111,6 +115,7 @@ Tetris.start = function () {
     Tetris.ytDOM.style.display = "block";
     Tetris.ztDOM = document.getElementById("ztrans");
     Tetris.ztDOM.style.display = "block";
+    Tetris.holesdW=document.getElementById("holesdw").value;
     Tetris.endlinew=document.getElementById("endlinew").value;
     Tetris.holesW=document.getElementById("holesw").value;
     Tetris.erosionW=document.getElementById("erosionw").value;
@@ -118,7 +123,8 @@ Tetris.start = function () {
     Tetris.linW=document.getElementById("linw").value;
     Tetris.colW=document.getElementById("colw").value;
     Tetris.heightW=document.getElementById("heightw").value;
-    Tetris.Block.generateBlockShapes();
+    Tetris.classic=document.getElementById("classic");
+    if(!Tetris.classic.checked){Tetris.Block.generateBlockShapes();}
     Tetris.Block.center();
     Tetris.Block.generate();
     Tetris.Block.getBestPositonBlocks();

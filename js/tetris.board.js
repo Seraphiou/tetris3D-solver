@@ -30,8 +30,8 @@ Tetris.Board.holesAmount = function (boardFields) {
     // if we not specify a parametre we take the current board
     boardFields = boardFields || copy(Tetris.Board.fields);
     for (var x = 0; x < boardFields.length; x++) {
-        for (var y = 0; y < boardFields[0].length; y++) {
-            for (var z = 0; z < boardFields[0][0].length; z++) {
+        for (var y = 0; y < boardFields[x].length; y++) {
+            for (var z = 0; z < boardFields[x][y].length; z++) {
                 if(!boardFields[x][y][z]){
                     if((boardFields[x][y][z+1]===Tetris.Board.FIELD.PETRIFIED)||(boardFields[x][y][z+1]===Tetris.Board.FIELD.ACTIVE)){
                         holesAmount++;
@@ -42,6 +42,26 @@ Tetris.Board.holesAmount = function (boardFields) {
     }
     //Tetris.holesDOM.innerHTML = "trous : "+holesAmount;
     return holesAmount;
+};
+Tetris.Board.holesDepth = function (boardFields) {
+    var holesDepth = 0;
+    // if we not specify a parametre we take the current board
+    boardFields = boardFields || copy(Tetris.Board.fields);
+    for (var x = 0; x < boardFields.length; x++) {
+        for (var y = 0; y < boardFields[x].length; y++) {
+            for (var z = 0; z < boardFields[x][y].length; z++) {
+                if(!boardFields[x][y][z]){
+                    var n=1;
+                    while((boardFields[x][y][z+n]===Tetris.Board.FIELD.PETRIFIED)||(boardFields[x][y][z+n]===Tetris.Board.FIELD.ACTIVE)){
+                        n++;
+                        holesDepth++;
+                    }
+                }
+            }
+        }
+    }
+    //Tetris.holesDOM.innerHTML = "trous : "+holesAmount;
+    return holesDepth;
 };
 Tetris.Board.erosion = function (boardFields) {
     var amountLines=0;
@@ -70,8 +90,8 @@ Tetris.Board.colTransition = function (boardFields) {
     var amountcolTransition=0;
     boardFields = boardFields || copy(Tetris.Board.fields);
     for (var x = 0; x < boardFields.length; x++) {
-        for (var y = 0; y < boardFields[0].length; y++) {
-            for (var z = 0; z < boardFields[0][0].length-1; z++) {
+        for (var y = 0; y < boardFields[x].length; y++) {
+            for (var z = 0; z < boardFields[x][y].length-1; z++) {
                 if((z===0)&&(Tetris.Board.fields[x][y][z]===Tetris.Board.FIELD.EMPTY)){
                     amountcolTransition++;
                 }
@@ -170,7 +190,13 @@ Tetris.Board.numberHolesMostCompleted= function(boardFields){
             }
         }
     }
-    return Math.min.apply(null,holesPerLineArrays);
+    holesPerLineArrays.sort();
+    holesPerLineArrays.reverse();
+    var lineCompleteFactor=0;
+    for (var i = 0; i < holesPerLineArrays.length; i++) {
+        lineCompleteFactor+=holesPerLineArrays[i]*((i+1)*(i+1));
+    };
+    return lineCompleteFactor;
 }
 Tetris.Board.wellcell = function (boardFields) {
     var amountWellCell=0;
@@ -179,7 +205,7 @@ Tetris.Board.wellcell = function (boardFields) {
     //fields with the edge
     var boardFieldsWithEdges = copy(boardFields);
     var boardcol=[];
-    for (var i = 0; i < boardFieldsWithEdges.length; i++) {
+    for (var i = 0; i < boardFieldsWithEdges[0].length; i++) {
         boardcol[i]=strTable(height,"*");
     };
     var boardcol2=copy(boardcol);
@@ -192,7 +218,7 @@ Tetris.Board.wellcell = function (boardFields) {
         boardFieldsWithEdges[x].insert(boardFieldsWithEdges[x].length,strTable(height,"*"));
     };
     for (var x = 0; x < boardFieldsWithEdges.length; x++) {
-        for (var y = 0; y < boardFieldsWithEdges.length; y++) {
+        for (var y = 0; y < boardFieldsWithEdges[x].length; y++) {
             boardFieldsWithEdges[x][y].insert(0,"*");
             boardFieldsWithEdges[x][y].insert(boardFieldsWithEdges[x][y].length,"*");
         };

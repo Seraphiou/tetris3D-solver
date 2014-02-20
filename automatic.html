@@ -12,9 +12,13 @@
         </div>
         <div id="menu">
             <h2>3D Tetris</h2>
-
-            <label class="c-label" class="c-label">Poids des trous
+            Type de formes :
+            <label class="c-label" ><input type="radio" name="shape" id="classic" checked>Classique</label>
+            <label class="c-label" ><input type="radio" name="shape" id="hasard">Aleatoire</label>
+            <label class="c-label">Poids des trous
             <input id="holesw" value="40" ></label>
+            <label class="c-label">Poids profondeur des trous
+            <input id="holesdw" value="10" ></label>
             <label class="c-label">Poids du nombre de lignes effaccées
             <input id="erosionw" value="6" type="text" ></label>
             <label class="c-label">Poids pour finir une ligne

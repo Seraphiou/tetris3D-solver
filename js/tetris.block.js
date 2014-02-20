@@ -193,7 +193,6 @@ Tetris.Block.generate = function () {
         Tetris.pointsDOM.innerHTML = "GAME OVER";
     }
 
-    Tetris.Block.getBestPositonBlocks();
     Tetris.Block.mesh.position.x =(Tetris.Block.position.x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize + Tetris.blockSize/2;
     Tetris.Block.mesh.position.y =(Tetris.Block.position.y - Tetris.boundingBoxConfig.splitY / 2) * Tetris.blockSize + Tetris.blockSize/2;
     Tetris.Block.mesh.position.z =(Tetris.Block.position.z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize - Tetris.blockSize/2;
@@ -262,6 +261,7 @@ Tetris.Block.move = function (x, y, z) {
     if (collision === Tetris.Board.COLLISION.GROUND) {
         Tetris.Block.hitBottom();
         Tetris.Board.checkCompleted();
+        Tetris.Block.getBestPositonBlocks();
     }
     Tetris.shadow();
 };
@@ -311,7 +311,7 @@ Tetris.Block.rateCase = function (shape,x,y,z){
     for (var i = 0; i < shape.length; i++) {
         boardFields[shape[i].x+x][shape[i].y+y][shape[i].z+z]=Tetris.Board.FIELD.ACTIVE;
     };
-    return (-Tetris.holesW)*Tetris.Board.holesAmount(boardFields)+Tetris.erosionW*Tetris.Board.erosion(boardFields)-Tetris.wellcellW*Tetris.Board.wellcell(boardFields)-Tetris.linW*Math.max(Tetris.Board.xlinTransition(boardFields),Tetris.Board.ylinTransition(boardFields))-Tetris.colW*Tetris.Board.colTransition(boardFields)-Tetris.heightW*Tetris.Board.arriveHeight(boardFields)-Tetris.endlinew*Tetris.Board.numberHolesMostCompleted(boardFields);
+    return (-Tetris.holesW)*Tetris.Board.holesAmount(boardFields)+(-Tetris.holesdW)*Tetris.Board.holesDepth(boardFields)+Tetris.erosionW*Tetris.Board.erosion(boardFields)-Tetris.wellcellW*Tetris.Board.wellcell(boardFields)-Tetris.linW*Math.max(Tetris.Board.xlinTransition(boardFields),Tetris.Board.ylinTransition(boardFields))-Tetris.colW*Tetris.Board.colTransition(boardFields)-Tetris.heightW*Tetris.Board.arriveHeight(boardFields)-Tetris.endlinew*Tetris.Board.numberHolesMostCompleted(boardFields);
     
 };
 
@@ -420,9 +420,9 @@ Tetris.Block.getPositions= function(){
     return tab;
 };
 Tetris.Block.hitBottom = function () {
+    Tetris.clearBest();
     Tetris.Block.petrify();
     Tetris.scene.remove(Tetris.Block.mesh);
-    Tetris.clearBest();
     Tetris.Block.generate();
     Tetris.Board.rate();
 
