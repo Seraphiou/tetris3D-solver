@@ -422,8 +422,8 @@ Tetris.Block.getPositions= function(){
 Tetris.Block.hitBottom = function () {
     Tetris.Block.petrify();
     Tetris.scene.remove(Tetris.Block.mesh);
-    Tetris.Block.generate();
     Tetris.clearBest();
+    Tetris.Block.generate();
     Tetris.Board.rate();
 
     Tetris.shadow();
