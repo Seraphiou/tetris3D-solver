@@ -193,6 +193,7 @@ Tetris.Block.generate = function () {
         Tetris.pointsDOM.innerHTML = "GAME OVER";
     }
 
+    Tetris.Block.getBestPositonBlocks();
     Tetris.Block.mesh.position.x =(Tetris.Block.position.x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize + Tetris.blockSize/2;
     Tetris.Block.mesh.position.y =(Tetris.Block.position.y - Tetris.boundingBoxConfig.splitY / 2) * Tetris.blockSize + Tetris.blockSize/2;
     Tetris.Block.mesh.position.z =(Tetris.Block.position.z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize - Tetris.blockSize/2;
@@ -423,7 +424,6 @@ Tetris.Block.hitBottom = function () {
     Tetris.scene.remove(Tetris.Block.mesh);
     Tetris.Block.generate();
     Tetris.clearBest();
-    Tetris.Block.getBestPositonBlocks();
     Tetris.Board.rate();
 
     Tetris.shadow();
