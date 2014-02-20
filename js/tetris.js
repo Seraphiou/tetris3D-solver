@@ -50,11 +50,11 @@ Tetris.init = function () {
 
     // configuration object
     var boundingBoxConfig = {
-        width:360,
-        height:360,
+        width:600,
+        height:600,
         depth:1200,
-        splitX:6,
-        splitY:6,
+        splitX:10,
+        splitY:10,
         splitZ:20
     };
     Tetris.camera.position.z = boundingBoxConfig.depth/2;
@@ -66,16 +66,21 @@ Tetris.init = function () {
 
     var boundingBox = new THREE.Mesh(
         new THREE.CubeGeometry(boundingBoxConfig.width, boundingBoxConfig.height, boundingBoxConfig.depth, boundingBoxConfig.splitX, boundingBoxConfig.splitY, boundingBoxConfig.splitZ),
-        new THREE.MeshBasicMaterial({vertexColors: THREE.FaceColors })
+        new THREE.MeshBasicMaterial({vertexColors: THREE.FaceColors, transparent: true, opacity:0.05 })
+    );
+    var boundingBoxFrame = new THREE.Mesh(
+        new THREE.CubeGeometry(boundingBoxConfig.width, boundingBoxConfig.height, boundingBoxConfig.depth, boundingBoxConfig.splitX, boundingBoxConfig.splitY, boundingBoxConfig.splitZ),
+        new THREE.MeshBasicMaterial({color:0x999999, wireframe:true })
     );
     boundingBox.material.side=THREE.DoubleSide;
     //generate different colors
     var geom=boundingBox.geometry;
     for (var i = 0; i < geom.faces.length; i++) {
         var face = geom.faces[i];
-        face.color.set( Math.random() * 0x0000ff );
+        face.color.set( 0xffffff );
     }
     Tetris.scene.add(boundingBox);
+    Tetris.scene.add(boundingBoxFrame);
     Tetris.renderer.setClearColor( 0xffffff, 1);
     Tetris.renderer.render(Tetris.scene, Tetris.camera);
 
@@ -113,14 +118,14 @@ Tetris.start = function () {
     Tetris.linW=document.getElementById("linw").value;
     Tetris.colW=document.getElementById("colw").value;
     Tetris.heightW=document.getElementById("heightw").value;
+    Tetris.Block.generateBlockShapes();
     Tetris.Block.center();
     Tetris.Block.generate();
     Tetris.Block.getBestPositonBlocks();
     Tetris.animate();
     
-    
 };
-//initializes the position of the faces
+//initializes the position of the faces of the tetris Bounding Box -- usefull for the block shadow
 Tetris.setFacesPositions=function(){
     var faces = Tetris.scene.children[1].geometry.faces;
     for (var i = faces.length - 1; i >= 0; i--) {
@@ -140,18 +145,58 @@ Tetris.setFacesPositions=function(){
         face.facePosition=[x,y,z];
     };
 }
+Tetris.BeforeBlock=[];
+Tetris.BoardShadowBlock=[];
+//get the faces projection of a block -- usefull for the block shadow
 Tetris.getFacesProjectionOf=function(x,y,z) {
-    return Tetris.scene.children[1].geometry.faces.filter(function(obj){
+    var faces=[];
+    faces=Tetris.scene.children[1].geometry.faces.filter(function(obj){
         return (obj.facePosition[0]===x)&&(obj.facePosition[1]===y)||(obj.facePosition[1]===y)&&(obj.facePosition[2]===z)||(obj.facePosition[0]===x)&&(obj.facePosition[2]===z);
     });
+    var kmax=-1;
+
+    if (Tetris.staticBlocks!==undefined) {
+        if (Tetris.staticBlocks[x]!==undefined) {
+            if (Tetris.staticBlocks[x][y]!==undefined) {
+                for (var k = 0; k < Tetris.staticBlocks[x][y].length; k++) {                            
+                    if((k>=kmax)&&(Tetris.staticBlocks[x][y][k]!==undefined)){
+                        kmax=k;
+                    }
+                }
+            }
+        }
+    }
+    if(kmax>-1){
+        Tetris.staticBlocks[x][y][kmax].geometry.faces[8].hz=kmax;
+        Tetris.staticBlocks[x][y][kmax].geometry.faces[9].hz=kmax;
+        faces.push(Tetris.staticBlocks[x][y][kmax].geometry.faces[8]);
+        faces.push(Tetris.staticBlocks[x][y][kmax].geometry.faces[9]);
+    }
+    return faces;
 }
-//change color of a face of the bound
+
+//change color of a face of the bounding box
  Tetris.changeInWhite=function(face, color){
     var color=color||0xffffff;
     face.color.set(color);
     Tetris.scene.children[1].geometry.colorsNeedUpdate=true;
-}
+    if(Tetris.staticBlocks!==undefined){
+        for (var i = 0; i < Tetris.staticBlocks.length; i++) {
+            if(Tetris.staticBlocks[i]!==undefined){
+                for (var j = 0; j < Tetris.staticBlocks[i].length; j++) {
+                    if(Tetris.staticBlocks[i][j]!==undefined){
+                        for (var k = 0; k < Tetris.staticBlocks[i][j].length; k++) {
+                            if(Tetris.staticBlocks[i][j][k]!==undefined){
+                                Tetris.staticBlocks[i][j][k].geometry.colorsNeedUpdate=true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
+}
 Tetris.gameStepTime = 1000;
 
 Tetris.frameTime = 0; // ms
@@ -160,6 +205,7 @@ Tetris._lastFrameTime = Date.now(); // timestamp
 
 Tetris.gameOver = false;
 
+//anime the block
 Tetris.animate = function () {
     var time = Date.now();
     Tetris.frameTime = time - Tetris._lastFrameTime;
@@ -168,7 +214,6 @@ Tetris.animate = function () {
 
     while (Tetris.cumulatedFrameTime > Tetris.gameStepTime) {
         Tetris.cumulatedFrameTime -= Tetris.gameStepTime;
-        Tetris.Block.move(0,0,-1);
     }
 
     Tetris.renderer.render(Tetris.scene, Tetris.camera);
@@ -183,26 +228,47 @@ Tetris.animate = function () {
 // var i = 0, j = 0, k = 0, interval = setInterval(function() {if(i==6) {i=0;j++;} if(j==6) {j=0;k++;} if(k==6) {clearInterval(interval); return;} Tetris.addStaticBlock(i,j,k); i++;},30)
 
 Tetris.staticBlocks = [];
+Tetris.staticBlocksFrame = [];
 Tetris.zColors = [
     0x6666ff, 0x66ffff, 0xcc68EE, 0x666633, 0x66ff66, 0x9966ff, 0x00ff66, 0x66EE33, 0x003399, 0x330099, 0xFFA500, 0x99ff00, 0xee1289, 0x71C671, 0x00BFFF, 0x666633, 0x669966, 0x9966ff
 ];
+//add a grafic static block -- usefull to display the board
 Tetris.addStaticBlock = function (x, y, z) {
     if (Tetris.staticBlocks[x] === undefined) Tetris.staticBlocks[x] = [];
     if (Tetris.staticBlocks[x][y] === undefined) Tetris.staticBlocks[x][y] = [];
+    if (Tetris.staticBlocksFrame[x] === undefined) Tetris.staticBlocksFrame[x] = [];
+    if (Tetris.staticBlocksFrame[x][y] === undefined) Tetris.staticBlocksFrame[x][y] = [];
 
-    var mesh = THREE.SceneUtils.createMultiMaterialObject(new THREE.CubeGeometry(Tetris.blockSize, Tetris.blockSize, Tetris.blockSize), [
-        new THREE.MeshBasicMaterial({color:0x000000, shading:THREE.FlatShading, wireframe:true, transparent:true}),
-        new THREE.MeshBasicMaterial({color:Tetris.zColors[z]})
-    ]);
+    var meshFrame = new THREE.Mesh(
+        new THREE.CubeGeometry(Tetris.blockSize, Tetris.blockSize, Tetris.blockSize),
+        new THREE.MeshBasicMaterial({color:0x000000, shading:THREE.FlatShading, wireframe:true, transparent:true})
+    );
+    var mesh = new THREE.Mesh(
+        new THREE.CubeGeometry(Tetris.blockSize, Tetris.blockSize, Tetris.blockSize),
+        new THREE.MeshBasicMaterial({vertexColors: THREE.FaceColors})
+    );
+    var geom=mesh.geometry;
+    for (var i = 0; i < geom.faces.length; i++) {
+        var face = geom.faces[i];
+        face.color.set( Tetris.zColors[z] );
+    }
 
     mesh.position.x = (x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize + Tetris.blockSize / 2;
     mesh.position.y = (y - Tetris.boundingBoxConfig.splitY / 2) * Tetris.blockSize + Tetris.blockSize / 2;
     mesh.position.z = (z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize + Tetris.blockSize / 2;
 
+    meshFrame.position.x = (x - Tetris.boundingBoxConfig.splitX / 2) * Tetris.blockSize + Tetris.blockSize / 2;
+    meshFrame.position.y = (y - Tetris.boundingBoxConfig.splitY / 2) * Tetris.blockSize + Tetris.blockSize / 2;
+    meshFrame.position.z = (z - Tetris.boundingBoxConfig.splitZ / 2) * Tetris.blockSize + Tetris.blockSize / 2;
+
     Tetris.scene.add(mesh);
+    Tetris.scene.add(meshFrame);
     Tetris.staticBlocks[x][y][z] = mesh;
+    Tetris.staticBlocksFrame[x][y][z] = meshFrame;
 };
 Tetris.bestBlocks=[];
+
+//add a grafic static block green and transparent
 Tetris.addBestBlocks = function (x, y, z) {
     if (Tetris.bestBlocks[x] === undefined) Tetris.bestBlocks[x] = [];
     if (Tetris.bestBlocks[x][y] === undefined) Tetris.bestBlocks[x][y] = [];
@@ -218,6 +284,8 @@ Tetris.addBestBlocks = function (x, y, z) {
     Tetris.scene.add(mesh);
     Tetris.bestBlocks[x][y][z]=mesh;
 };
+
+// remove all the static best block
 Tetris.clearBest=function(){
     if(Tetris.bestBlocks!==undefined){
         for (var i = 0; i < Tetris.bestBlocks.length; i++) {
@@ -236,6 +304,8 @@ Tetris.clearBest=function(){
 };
 
 Tetris.currentPoints = 0;
+
+//add the point
 Tetris.addPoints = function (n) {
     Tetris.currentPoints += n;
     Tetris.pointsDOM.innerHTML = Tetris.currentPoints;
