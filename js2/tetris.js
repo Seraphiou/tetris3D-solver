@@ -17,6 +17,9 @@ document.getElementById("reset").addEventListener('click', function (event) {
     Tetris.camera.position.set(0, 0 , Tetris.boundingBoxConfig.depth/2);
     Tetris.camera.rotation.set(0, 0, 0);
 });
+document.getElementById("space").addEventListener('click', function (event) {
+    Tetris.Block.move(0, 0, -1);
+});
 
 Tetris.init = function () {
     // set the scene size
@@ -31,7 +34,7 @@ Tetris.init = function () {
 
     // create a WebGL renderer, camera
     // and a scene
-    Tetris.renderer = new THREE.WebGLRenderer();
+    Tetris.renderer = new THREE.CanvasRenderer();
     Tetris.camera = new THREE.PerspectiveCamera(VIEW_ANGLE,
         ASPECT,
         NEAR,
@@ -61,7 +64,7 @@ Tetris.init = function () {
         splitY:Tetris.splitY,
         splitZ:Tetris.splitZ
     };
-    Tetris.camera.position.z = boundingBoxConfig.depth/2;
+    Tetris.camera.position.z = boundingBoxConfig.depth;
     Tetris.scene.add(Tetris.camera);
     Tetris.boundingBoxConfig = boundingBoxConfig;
     Tetris.blockSize = boundingBoxConfig.width / boundingBoxConfig.splitX;
@@ -274,7 +277,7 @@ window.addEventListener('keydown', function (event) {
         case 32: // space
             Tetris.Block.move(0, 0, -1);
             break;
-        case 85: // space
+        case 85: // U
             Tetris.Block.move(0, 0, 1);
             break;
 
