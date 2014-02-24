@@ -34,7 +34,7 @@ Tetris.init = function () {
 
     // create a WebGL renderer, camera
     // and a scene
-    Tetris.renderer = new THREE.CanvasRenderer();
+    Tetris.renderer = new THREE.WebGLRenderer();
     Tetris.camera = new THREE.PerspectiveCamera(VIEW_ANGLE,
         ASPECT,
         NEAR,
@@ -64,7 +64,7 @@ Tetris.init = function () {
         splitY:Tetris.splitY,
         splitZ:Tetris.splitZ
     };
-    Tetris.camera.position.z = boundingBoxConfig.depth;
+    Tetris.camera.position.z = boundingBoxConfig.depth/2;
     Tetris.scene.add(Tetris.camera);
     Tetris.boundingBoxConfig = boundingBoxConfig;
     Tetris.blockSize = boundingBoxConfig.width / boundingBoxConfig.splitX;
