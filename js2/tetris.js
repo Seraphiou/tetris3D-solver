@@ -128,12 +128,33 @@ Tetris.start = function () {
     Tetris.heightW=document.getElementById("heightw").value;
     Tetris.classic=document.getElementById("classic");
     if(!Tetris.classic.checked){Tetris.Block.generateBlockShapes();}
+    Tetris.shapeDecoration();
     Tetris.Block.center();
     Tetris.Block.generate();
     Tetris.animate();
     
     
 };
+Tetris.shapeDecoration=function(){
+    for (var j = 0; j < Tetris.Block.shapes.length; j++) {
+        var shape =copyShape(Tetris.Block.shapes[j]);
+        var geometry = new THREE.CubeGeometry(0, 0, 0);
+        var tmpGeometry;
+        for (i = 0; i < shape.length; i++) {
+            tmpGeometry = new THREE.Mesh(new THREE.CubeGeometry(Tetris.blockSize, Tetris.blockSize, Tetris.blockSize));
+            tmpGeometry.position.x = Tetris.blockSize * shape[i].x;//
+            tmpGeometry.position.y = Tetris.blockSize * shape[i].y;
+            THREE.GeometryUtils.merge(geometry, tmpGeometry);//merges the differents cube with theyr positions to get the final geometry
+        }
+        var tempmesh;
+        tempmesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [
+            new THREE.MeshBasicMaterial({color:Math.random*0xffffff,vertexColors: THREE.FaceColors , shading:THREE.FlatShading, wireframe:true}),
+            new THREE.MeshBasicMaterial({color:Math.random*0xffffff,vertexColors: THREE.FaceColors , shading:THREE.FlatShading })
+        ]);
+        tempmesh.position        
+
+    };
+}
 //initializes the position of the faces
 Tetris.setFacesPositions=function(){
     var faces = Tetris.scene.children[1].geometry.faces;
@@ -182,6 +203,7 @@ Tetris.animate = function () {
 
     while (Tetris.cumulatedFrameTime > Tetris.gameStepTime) {
         Tetris.cumulatedFrameTime -= Tetris.gameStepTime;
+        Tetris.Block.move(0,0,-1);
     }
 
     Tetris.renderer.render(Tetris.scene, Tetris.camera);
@@ -230,6 +252,7 @@ Tetris.addBestBlocks = function (x, y, z) {
 
     Tetris.scene.add(mesh);
     Tetris.bestBlocks[x][y][z]=mesh;
+
 };
 Tetris.clearBest=function(){
     if(Tetris.bestBlocks!==undefined){
